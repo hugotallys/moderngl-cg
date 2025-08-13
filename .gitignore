@@ -1,0 +1,43 @@
+# This .gitignore file is for a C++ project using CLion,
+# with a focus on an OpenGL program.
+
+# === CLion Specific Files ===
+# Directory created by CLion for project settings and configuration.
+# This should never be committed as it contains user-specific paths and settings.
+.idea/
+
+# Directories created by CMake for building the project.
+# These contain compiled binaries and object files and are
+# regenerated every time the project is built.
+cmake-build-*/
+
+# Specific user-local files.
+*.user
+
+# === Build Artifacts ===
+# Ignore compiled object files.
+*.o
+*.obj
+
+# Ignore dynamically linked libraries.
+*.so
+*.dll
+
+# Ignore statically linked libraries.
+*.a
+*.lib
+
+# Ignore executables.
+*.exe
+a.out
+
+# === Dependency and Third-Party Libraries ===
+# If you are managing dependencies manually in a 'deps' folder
+# instead of using a package manager like vcpkg or submodules,
+# you might want to ignore the compiled dependencies here.
+# For example:
+# /deps/
+
+# === Operating System Files ===
+# macOS-specific files.
+.DS_Store
