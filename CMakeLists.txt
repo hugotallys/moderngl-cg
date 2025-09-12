@@ -23,3 +23,10 @@ add_executable(catavento catavento.c)
 target_link_libraries(catavento PRIVATE "-framework GLUT" "-framework OpenGL")
 # Add the preprocessor definition to silence deprecation warnings
 target_compile_definitions(catavento PRIVATE GL_SILENCE_DEPRECATION)
+
+# Target for the C program (test.c)
+add_executable(futebol futebol.c)
+# Use this simpler syntax as it is often sufficient
+target_link_libraries(futebol PRIVATE "-framework GLUT" "-framework OpenGL")
+# Add the preprocessor definition to silence deprecation warnings
+target_compile_definitions(futebol PRIVATE GL_SILENCE_DEPRECATION)
