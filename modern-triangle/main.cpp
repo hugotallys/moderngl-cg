@@ -52,8 +52,8 @@ void createTriangle()
     glBindVertexArray(0);
 }
 
-std::string vShader = readShaderFile("../vertexShader.glsl");
-std::string fShader = readShaderFile("../fragmentShader.glsl");
+std::string vShader = readShaderFile("modern-triangle/fragmentShader.glsl");
+std::string fShader = readShaderFile("modern-triangle/fragmentShader.glsl");
 
 void addShader(const GLuint program, const std::string &shaderCode, const GLenum shaderType)
 {

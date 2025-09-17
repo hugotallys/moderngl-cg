@@ -15,9 +15,13 @@ add_executable(pinwheel pinwheel/main.c)
 target_link_libraries(pinwheel PRIVATE "-framework GLUT" "-framework OpenGL")
 target_compile_definitions(pinwheel PRIVATE GL_SILENCE_DEPRECATION)
 
-# Classic OpenGL - Soccer
-add_executable(soccer soccer/main.cpp)
-# Use this simpler syntax as it is often sufficient
+# Classic OpenGL - Soccer (with modular classes)
+add_executable(soccer
+    soccer/main.cpp
+    soccer/SoccerField.cpp
+    soccer/Ball.cpp
+    soccer/Player.cpp
+    soccer/Camera.cpp
+)
 target_link_libraries(soccer PRIVATE "-framework GLUT" "-framework OpenGL")
-# Add the preprocessor definition to silence deprecation warnings
 target_compile_definitions(soccer PRIVATE GL_SILENCE_DEPRECATION)
