@@ -15,6 +15,7 @@ Camera* camera;
 
 // Game state
 int keys[256];
+int specialKeys[256];
 
 class SoccerGame {
     SoccerField field;
@@ -29,7 +30,12 @@ public:
     void update() {
         player.processInput(keys);
         player.update();
-        ball.update(field.getWidth(), field.getHeight());
+        
+        // Handle arrow keys for ball movement
+        handleBallMovement();
+        
+        ball.update(field.getWidth(), field.getHeight(), field.getGoalWidth(), field.getGoalHeight());
+
         player.checkBallCollision(ball);
         checkGoals();
     }
@@ -64,7 +70,24 @@ public:
         }
     }
 
-    void drawScore() {
+    void handleBallMovement() {
+        const float BALL_FORCE = 0.3f; // Constant force applied by arrow keys
+        
+        if (specialKeys[GLUT_KEY_UP]) {
+            ball.applyForce(0.0f, BALL_FORCE, 0.0f);
+        }
+        if (specialKeys[GLUT_KEY_DOWN]) {
+            ball.applyForce(0.0f, -BALL_FORCE, 0.0f);
+        }
+        if (specialKeys[GLUT_KEY_LEFT]) {
+            ball.applyForce(-BALL_FORCE, 0.0f, 0.0f);
+        }
+        if (specialKeys[GLUT_KEY_RIGHT]) {
+            ball.applyForce(BALL_FORCE, 0.0f, 0.0f);
+        }
+    }
+
+    void drawScore() const {
         char scoreText[50];
         snprintf(scoreText, sizeof(scoreText), "Team 1: %d - Team 2: %d", scoreTeam1, scoreTeam2);
 
@@ -88,6 +111,11 @@ public:
         glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
     }
+
+    void ballJump() {
+        constexpr float JUMP_FORCE = 4.0f; // Adjust the force as needed
+        ball.applyForce(0.0f, 0.0f, JUMP_FORCE);
+    }
 };
 
 SoccerGame* game;
@@ -103,6 +131,10 @@ void keyboard(unsigned char key, int x, int y) {
     case 'R':
         game->reset();
         break;
+    case 'j':
+    case 'J':
+        game->ballJump();
+        break;
     }
 
     glutPostRedisplay();
@@ -110,6 +142,15 @@ void keyboard(unsigned char key, int x, int y) {
 
 void keyboardUp(unsigned char key, int x, int y) {
     keys[key] = 0;
+}
+
+void specialKeyboard(int key, int x, int y) {
+    specialKeys[key] = 1;
+    glutPostRedisplay();
+}
+
+void specialKeyboardUp(int key, int x, int y) {
+    specialKeys[key] = 0;
 }
 
 void update(int value) {
@@ -165,6 +206,8 @@ int main(int argc, char** argv) {
     glutMotionFunc(motion);
     glutKeyboardFunc(keyboard);
     glutKeyboardUpFunc(keyboardUp);
+    glutSpecialFunc(specialKeyboard);
+    glutSpecialUpFunc(specialKeyboardUp);
     glutTimerFunc(16, update, 0);
 
     // Initialize game
@@ -173,16 +216,19 @@ int main(int argc, char** argv) {
     // Initialize keys array
     for (int i = 0; i < 256; i++) {
         keys[i] = 0;
+        specialKeys[i] = 0;
     }
 
     printf("=== 3D SOCCER SIMULATION ===\n");
     printf("Controls:\n");
     printf("WASD - Move player\n");
+    printf("Arrow keys - Move ball\n");
     printf("SPACE - Jump\n");
     printf("Mouse drag - Control camera\n");
     printf("Mouse wheel - Zoom\n");
     printf("I - Zoom in\n");
     printf("O - Zoom out\n");
+    printf("R - Reset game\n");
     printf("ESC - Exit\n");
     printf("=============================\n");
 

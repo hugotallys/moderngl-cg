@@ -3,7 +3,7 @@
 Ball::Ball(float startX, float startY, float startZ, float r)
     : x(startX), y(startY), z(startZ), vx(0.0f), vy(0.0f), vz(0.0f), radius(r) {}
 
-void Ball::update(float fieldWidth, float fieldHeight) {
+int Ball::update(float fieldWidth, float fieldHeight, float goalWidth, float goalHeight) {
     // Update position
     x += vx;
     y += vy;
@@ -14,22 +14,24 @@ void Ball::update(float fieldWidth, float fieldHeight) {
     vy *= 0.98f;
     vz *= 0.95f;
 
-    // Field boundary collisions
-    if (x < -fieldWidth / 2 + radius) {
-        x = -fieldWidth / 2 + radius;
-        vx = -vx * 0.7f;
-    }
-    if (x > fieldWidth / 2 - radius) {
-        x = fieldWidth / 2 - radius;
-        vx = -vx * 0.7f;
-    }
-    if (y > fieldHeight / 2 - radius) {
-        y = fieldHeight / 2 - radius;
-        vy = -vy * 0.7f;
-    }
-    if (y < -fieldHeight / 2 + radius) {
-        y = -fieldHeight / 2 + radius;
-        vy = -vy * 0.7f;
+    if (x >= goalWidth / 2 || x <= -goalWidth / 2) {
+        // Field boundary collisions
+        if (x < -fieldWidth / 2 + radius) {
+            x = -fieldWidth / 2 + radius;
+            vx = -vx * 0.7f;
+        }
+        if (x > fieldWidth / 2 - radius) {
+            x = fieldWidth / 2 - radius;
+            vx = -vx * 0.7f;
+        }
+        if (y > fieldHeight / 2 - radius) {
+            y = fieldHeight / 2 - radius;
+            vy = -vy * 0.7f;
+        }
+        if (y < -fieldHeight / 2 + radius) {
+            y = -fieldHeight / 2 + radius;
+            vy = -vy * 0.7f;
+        }
     }
 
     // Ground collision
@@ -40,7 +42,7 @@ void Ball::update(float fieldWidth, float fieldHeight) {
     }
 
     // Apply gravity
-    vz -= 0.02f;
+    vz -= 0.1f;
 }
 
 void Ball::render() {

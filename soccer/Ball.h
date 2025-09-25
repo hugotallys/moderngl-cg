@@ -4,6 +4,7 @@
 #include <OpenGL/gl.h>
 #include <GLUT/glut.h>
 #include <math.h>
+#include <iostream>
 
 class Ball {
 private:
@@ -14,7 +15,7 @@ private:
 public:
     Ball(float startX = 0.0f, float startY = 0.0f, float startZ = 1.0f, float r = 1.0f);
 
-    void update(float fieldWidth, float fieldHeight);
+    int update(float fieldWidth, float fieldHeight, float goalWidth, float goalHeight);
     void render();
     void reset();
     void applyForce(float fx, float fy, float fz);
