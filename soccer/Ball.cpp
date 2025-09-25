@@ -14,7 +14,7 @@ int Ball::update(float fieldWidth, float fieldHeight, float goalWidth, float goa
     vy *= 0.98f;
     vz *= 0.95f;
 
-    if (x >= goalWidth / 2 || x <= -goalWidth / 2) {
+    if (x >= goalWidth / 2 || x <= -goalWidth / 2 || z > goalHeight) {
         // Field boundary collisions
         if (x < -fieldWidth / 2 + radius) {
             x = -fieldWidth / 2 + radius;

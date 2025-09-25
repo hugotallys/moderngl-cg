@@ -1,6 +1,13 @@
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
+
 #include <OpenGL/gl.h>
 #include <GLUT/glut.h>
 #include <iostream>
+#include <stdio.h>
+#include <random> // For random number generation
+#include <cmath>  // For sqrt in vector normalization
+#include <ctime>  // For seeding the random number generator
 
 #include "SoccerField.h"
 #include "Ball.h"
@@ -9,6 +16,9 @@
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
+
+// --- Audio Engine ---
+ma_engine engine;
 
 // Game objects
 Camera* camera;
@@ -30,14 +40,14 @@ public:
     void update() {
         player.processInput(keys);
         player.update();
-        
+
         // Handle arrow keys for ball movement
         handleBallMovement();
-        
+
         ball.update(field.getWidth(), field.getHeight(), field.getGoalWidth(), field.getGoalHeight());
 
         player.checkBallCollision(ball);
-        checkGoals();
+        checkGoals(&engine);
     }
 
     void render() {
@@ -56,14 +66,42 @@ public:
         std::cout << "Game reset!" << std::endl;
     }
 
-    void checkGoals() {
+    void kickBall(ma_engine* pEngine) {
+        // 1. Play the referee whistle sound
+        ma_engine_play_sound(pEngine, "../soccer/assets/torcida.mp3", NULL);
+        ma_engine_play_sound(pEngine, "../soccer/assets/autoriza.mp3", NULL);
+
+        // 2. Apply a random force vector to the ball
+        const float KICK_STRENGTH = 5.0f;
+        const float LIFT_FORCE = 3.0f;
+
+        // Generate a random direction in the X-Y plane
+        float randX = (float)rand() / RAND_MAX * 2.0f - 1.0f; // Range [-1.0, 1.0]
+        float randY = (float)rand() / RAND_MAX * 2.0f - 1.0f; // Range [-1.0, 1.0]
+
+        // Normalize the vector to ensure consistent kick strength
+        float length = sqrt(randX * randX + randY * randY);
+        if (length > 0) {
+            randX /= length;
+            randY /= length;
+        }
+
+        // Apply the force
+        ball.applyForce(randX * KICK_STRENGTH, randY * KICK_STRENGTH, LIFT_FORCE);
+        std::cout << "KICK! Applying random force." << std::endl;
+    }
+
+
+    void checkGoals(ma_engine* pEngine) {
         if (ball.checkGoal(field.getHeight(), field.getGoalWidth(), field.getGoalHeight())) {
             if (ball.getY() > 0) {
                 scoreTeam2++;
-                std::cout << "GOAL TEAM 2! Score: Team 1: " << scoreTeam1 << " - Team 2: " << scoreTeam2 << std::endl;
+                std::cout << "GOL ALEMANHA :( ! Score: Team 1: " << scoreTeam1 << " - Team 2: " << scoreTeam2 << std::endl;
+                ma_engine_play_sound(pEngine, "../soccer/assets/gol-alemanha.mp3", NULL);
             } else {
                 scoreTeam1++;
-                std::cout << "GOAL TEAM 1! Score: Team 1: " << scoreTeam1 << " - Team 2: " << scoreTeam2 << std::endl;
+                std::cout << "GOL BRASIL :) ! Score: Team 1: " << scoreTeam1 << " - Team 2: " << scoreTeam2 << std::endl;
+                ma_engine_play_sound(pEngine, "../soccer/assets/gol-brasil.mp3", NULL);
             }
             ball.reset();
             player.reset();
@@ -72,7 +110,7 @@ public:
 
     void handleBallMovement() {
         const float BALL_FORCE = 0.3f; // Constant force applied by arrow keys
-        
+
         if (specialKeys[GLUT_KEY_UP]) {
             ball.applyForce(0.0f, BALL_FORCE, 0.0f);
         }
@@ -168,8 +206,8 @@ public:
         glLineWidth(4.0f);
 
         // Team names
-        drawCenteredText(-boardWidth / 4.0f, header_cy, "Team Blue", 0.04f);
-        drawCenteredText( boardWidth / 4.0f, header_cy, "Team Red", 0.04f);
+        drawCenteredText(-boardWidth / 4.0f, header_cy, "BRA", 0.04f);
+        drawCenteredText( boardWidth / 4.0f, header_cy, "ALE", 0.04f);
 
         // Scores
         char score1Str[4];
@@ -206,6 +244,10 @@ void keyboard(unsigned char key, int x, int y) {
     case 'j':
     case 'J':
         game->ballJump();
+        break;
+    case 'k':
+    case 'K':
+        game->kickBall(&engine); // Kick the ball
         break;
     }
 
@@ -255,6 +297,16 @@ void display() {
 }
 
 int main(int argc, char** argv) {
+    // Seed the random number generator
+    srand(time(0));
+
+    // Initialize the audio engine
+    ma_result result = ma_engine_init(NULL, &engine);
+    if (result != MA_SUCCESS) {
+        printf("Failed to initialize audio engine.");
+        return -1;
+    }
+
     // Initialize GLUT
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
@@ -296,6 +348,7 @@ int main(int argc, char** argv) {
     printf("WASD - Move player\n");
     printf("Arrow keys - Move ball\n");
     printf("SPACE - Jump\n");
+    printf("K - Kick ball with whistle\n");
     printf("Mouse drag - Control camera\n");
     printf("Mouse wheel - Zoom\n");
     printf("I - Zoom in\n");
@@ -306,7 +359,10 @@ int main(int argc, char** argv) {
 
     glutMainLoop();
 
+    // Cleanup
+    ma_engine_uninit(&engine);
     delete game;
     delete camera;
     return 0;
 }
+
