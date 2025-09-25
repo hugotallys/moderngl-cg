@@ -42,7 +42,7 @@ int Ball::update(float fieldWidth, float fieldHeight, float goalWidth, float goa
     }
 
     // Apply gravity
-    vz -= 0.1f;
+    vz -= 0.2f;
 }
 
 void Ball::render() {

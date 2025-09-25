@@ -88,28 +88,100 @@ public:
     }
 
     void drawScore() const {
-        char scoreText[50];
-        snprintf(scoreText, sizeof(scoreText), "Team 1: %d - Team 2: %d", scoreTeam1, scoreTeam2);
+        glPushMatrix(); // Save the current modelview matrix
 
-        glMatrixMode(GL_PROJECTION);
+        // Scoreboard dimensions (doubled in size)
+        const float boardWidth = 65.0f;
+        const float boardHeight = 20.0f;
+        const float headerHeight = 10.0f; // The top part of the board for team names
+
+        // Position the scoreboard at the midfield line, on the side, and raised up.
+        // The center of the board will be raised up by 5 units and placed off the side of the field.
+        glTranslatef(- (field.getWidth() / 2.0f + 5.0f), 0.0f, boardHeight / 2.0f + 5.0f);
+
+        // Rotate the board to be vertical and face the center of the field (+X direction)
+        glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+        glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+
+        // --- Draw Scoreboard ---
+
+        // 1. Draw the black background rectangle
+        glColor3f(0.0f, 0.0f, 0.0f); // Black color
+        glBegin(GL_QUADS);
+            glVertex2f(-boardWidth / 2.0f, -boardHeight / 2.0f);
+            glVertex2f( boardWidth / 2.0f, -boardHeight / 2.0f);
+            glVertex2f( boardWidth / 2.0f,  boardHeight / 2.0f);
+            glVertex2f(-boardWidth / 2.0f,  boardHeight / 2.0f);
+        glEnd();
+
+        // Small Z-offset for lines and text to prevent z-fighting
         glPushMatrix();
-        glLoadIdentity();
-        glOrtho(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT, -1, 1);
+        glTranslatef(0.0f, 0.0f, 0.01f);
 
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glLoadIdentity();
+        // 2. Draw the white outline and dividing lines
+        glColor3f(1.0f, 1.0f, 1.0f); // White color
+        glLineWidth(4.0f);
 
-        glColor3f(1.0f, 1.0f, 1.0f);
-        glRasterPos2f(10, WINDOW_HEIGHT - 20);
-        for (int i = 0; scoreText[i] != '\0'; i++) {
-            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, scoreText[i]);
-        }
+        // Outline
+        glBegin(GL_LINE_LOOP);
+            glVertex2f(-boardWidth / 2.0f, -boardHeight / 2.0f);
+            glVertex2f( boardWidth / 2.0f, -boardHeight / 2.0f);
+            glVertex2f( boardWidth / 2.0f,  boardHeight / 2.0f);
+            glVertex2f(-boardWidth / 2.0f,  boardHeight / 2.0f);
+        glEnd();
 
-        glPopMatrix();
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-        glMatrixMode(GL_MODELVIEW);
+        // Vertical divider
+        glBegin(GL_LINES);
+            glVertex2f(0.0f, -boardHeight / 2.0f);
+            glVertex2f(0.0f,  boardHeight / 2.0f);
+        glEnd();
+
+        // Horizontal divider for header
+        glBegin(GL_LINES);
+            glVertex2f(-boardWidth / 2.0f, boardHeight / 2.0f - headerHeight);
+            glVertex2f( boardWidth / 2.0f, boardHeight / 2.0f - headerHeight);
+        glEnd();
+        glLineWidth(1.0f); // Reset line width
+
+        // --- Draw Text ---
+
+        // Helper function to draw stroke text, centered in a given box.
+        auto drawCenteredText = [](float box_cx, float box_cy, const char* text, float scale) {
+            glPushMatrix();
+            float textWidth = glutStrokeLength(GLUT_STROKE_ROMAN, (const unsigned char*)text);
+
+            // Approx height of GLUT_STROKE_ROMAN is ~119 units.
+            // We translate to center the text block.
+            glTranslatef(box_cx - (textWidth / 2.0f) * scale, box_cy - (119.05f / 3.0f) * scale, 0.0f);
+            glScalef(scale, scale, scale);
+
+            for (const char* c = text; *c != '\0'; c++) {
+                glutStrokeCharacter(GLUT_STROKE_ROMAN, *c);
+            }
+            glPopMatrix();
+        };
+
+        // Calculate center Y positions for the cells
+        float header_cy = (boardHeight / 2.0f + (boardHeight / 2.0f - headerHeight)) / 2.0f; // Midpoint of top cell
+        float score_cy = ((boardHeight / 2.0f - headerHeight) + (-boardHeight / 2.0f)) / 2.0f; // Midpoint of bottom cell
+
+        glLineWidth(4.0f);
+
+        // Team names
+        drawCenteredText(-boardWidth / 4.0f, header_cy, "Team Blue", 0.04f);
+        drawCenteredText( boardWidth / 4.0f, header_cy, "Team Red", 0.04f);
+
+        // Scores
+        char score1Str[4];
+        snprintf(score1Str, sizeof(score1Str), "%d", scoreTeam1);
+        char score2Str[4];
+        snprintf(score2Str, sizeof(score2Str), "%d", scoreTeam2);
+
+        drawCenteredText(-boardWidth / 4.0f, score_cy, score1Str, 0.05f);
+        drawCenteredText( boardWidth / 4.0f, score_cy, score2Str, 0.05f);
+
+        glPopMatrix(); // Pop the Z-offset matrix
+        glPopMatrix(); // Restore the original modelview matrix
     }
 
     void ballJump() {
