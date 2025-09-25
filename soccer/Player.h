@@ -11,15 +11,25 @@ struct PlayerSegment {
     float x, y, z;
     float vx, vy, vz;
     float radius;
+    float angle; // Individual segment angle for wiggling
+};
+
+enum TeamColor {
+    TEAM_BRAZIL,
+    TEAM_GERMANY
 };
 
 class Player {
 private:
     std::vector<PlayerSegment> segments;
+    std::vector<float> angles; // Cumulative angles for wiggling effect
     int keys[256];
+    TeamColor teamColor;
+    float t; // Time parameter for animation
+    float rotation; // Player's rotation angle (facing direction)
 
 public:
-    Player(int numSegments = 5, float startX = 0.0f, float startY = -15.0f);
+    Player(int numSegments = 5, float startX = 0.0f, float startY = -15.0f, TeamColor team = TEAM_BRAZIL);
 
     void update();
     void render();
@@ -31,10 +41,12 @@ public:
     float getX() const { return segments[0].x; }
     float getY() const { return segments[0].y; }
     float getZ() const { return segments[0].z; }
+    float getRotation() const { return rotation; }
 
 private:
     void updateSegments();
     void applyPhysics();
+    void setSegmentColor(int segmentIndex);
 };
 
 #endif

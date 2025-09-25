@@ -30,30 +30,35 @@ int specialKeys[256];
 class SoccerGame {
     SoccerField field;
     Ball ball;
-    Player player;
+    Player playerBrazil;
+    Player playerGermany;
     int scoreTeam1, scoreTeam2;
 
 public:
     SoccerGame() : field(68.0f, 105.0f), ball(0.0f, 0.0f, 1.0f, 1.0f),
-                   player(5, -15.0f, -15.0f), scoreTeam1(0), scoreTeam2(0) {}
+                   playerBrazil(10, -15.0f, -15.0f, TEAM_BRAZIL),
+                   playerGermany(10, 15.0f, 15.0f, TEAM_GERMANY),
+                   scoreTeam1(0), scoreTeam2(0) {}
 
     void update() {
-        player.processInput(keys);
-        player.update();
+        playerBrazil.processInput(keys);
+        playerBrazil.update();
+        playerGermany.update();
 
-        // Handle arrow keys for ball movement
         handleBallMovement();
 
         ball.update(field.getWidth(), field.getHeight(), field.getGoalWidth(), field.getGoalHeight());
 
-        player.checkBallCollision(ball);
+        playerBrazil.checkBallCollision(ball);
+        playerGermany.checkBallCollision(ball);
         checkGoals(&engine);
     }
 
     void render() {
         field.render();
         field.renderGoals();
-        player.render();
+        playerBrazil.render();
+        playerGermany.render();
         ball.render();
         drawScore();
     }
@@ -62,7 +67,8 @@ public:
         scoreTeam1 = 0;
         scoreTeam2 = 0;
         ball.reset();
-        player.reset();
+        playerBrazil.reset();
+        playerGermany.reset();
         std::cout << "Game reset!" << std::endl;
     }
 
@@ -104,7 +110,8 @@ public:
                 ma_engine_play_sound(pEngine, "../soccer/assets/gol-brasil.mp3", NULL);
             }
             ball.reset();
-            player.reset();
+            playerBrazil.reset();
+            playerGermany.reset();
         }
     }
 
