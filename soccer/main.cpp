@@ -30,35 +30,74 @@ int specialKeys[256];
 class SoccerGame {
     SoccerField field;
     Ball ball;
-    Player playerBrazil;
-    Player playerGermany;
+    std::vector<Player> playersBrazil;  // Changed from single player to vector
+    std::vector<Player> playersGermany; // Changed from single player to vector
     int scoreTeam1, scoreTeam2;
 
 public:
     SoccerGame() : field(68.0f, 105.0f), ball(0.0f, 0.0f, 1.0f, 1.0f),
-                   playerBrazil(10, -15.0f, -15.0f, TEAM_BRAZIL),
-                   playerGermany(10, 15.0f, 15.0f, TEAM_GERMANY),
-                   scoreTeam1(0), scoreTeam2(0) {}
+                   scoreTeam1(0), scoreTeam2(0) {
+        
+        // Create 5 Brazilian players
+        float braStartY = field.getHeight() / 3.0f; // Position them in Brazilian half
+        for (int i = 0; i < 5; i++) {
+            float startX = -20.0f + (i * 10.0f); // Spread them across the field
+            float startY = braStartY + ((i % 2) * 8.0f); // Alternate Y positions slightly
+            playersBrazil.emplace_back(5, startX, startY, TEAM_BRAZIL);
+        }
+        
+        // Create 5 German players
+        float gerStartY = -field.getHeight() / 3.0f; // Position them in German half
+        for (int i = 0; i < 5; i++) {
+            float startX = -20.0f + (i * 10.0f); // Spread them across the field
+            float startY = gerStartY - ((i % 2) * 8.0f); // Alternate Y positions slightly
+            playersGermany.emplace_back(5, startX, startY, TEAM_GERMANY);
+        }
+    }
 
     void update() {
-        playerBrazil.processInput(keys);
-        playerBrazil.update();
-        playerGermany.update();
+        // Update AI for all Brazilian players
+        for (auto& player : playersBrazil) {
+            player.updateAI(ball);
+            player.update();
+        }
+        
+        // Update AI for all German players
+        for (auto& player : playersGermany) {
+            player.updateAI(ball);
+            player.update();
+        }
 
+        // Handle arrow keys for ball movement
         handleBallMovement();
 
         ball.update(field.getWidth(), field.getHeight(), field.getGoalWidth(), field.getGoalHeight());
 
-        playerBrazil.checkBallCollision(ball);
-        playerGermany.checkBallCollision(ball);
+        // Check collisions for all players
+        for (auto& player : playersBrazil) {
+            player.checkBallCollision(ball);
+        }
+        for (auto& player : playersGermany) {
+            player.checkBallCollision(ball);
+        }
+        
         checkGoals(&engine);
     }
 
     void render() {
         field.render();
         field.renderGoals();
-        playerBrazil.render();
-        playerGermany.render();
+        
+        // Render all Brazilian players
+        for (auto& player : playersBrazil) {
+            player.render();
+        }
+        
+        // Render all German players
+        for (auto& player : playersGermany) {
+            player.render();
+        }
+        
         ball.render();
         drawScore();
     }
@@ -67,9 +106,28 @@ public:
         scoreTeam1 = 0;
         scoreTeam2 = 0;
         ball.reset();
-        playerBrazil.reset();
-        playerGermany.reset();
-        std::cout << "Game reset!" << std::endl;
+        
+        // Reset all Brazilian players to their initial positions
+        float braStartY = field.getHeight() / 3.0f;
+        for (int i = 0; i < playersBrazil.size(); i++) {
+            float startX = -20.0f + (i * 10.0f);
+            float startY = braStartY + ((i % 2) * 8.0f);
+            playersBrazil[i].reset();
+            // Set specific initial position for each player
+            playersBrazil[i].setInitialPosition(startX, startY);
+        }
+        
+        // Reset all German players to their initial positions
+        float gerStartY = -field.getHeight() / 3.0f;
+        for (int i = 0; i < playersGermany.size(); i++) {
+            float startX = -20.0f + (i * 10.0f);
+            float startY = gerStartY - ((i % 2) * 8.0f);
+            playersGermany[i].reset();
+            // Set specific initial position for each player
+            playersGermany[i].setInitialPosition(startX, startY);
+        }
+        
+        std::cout << "Game reset! All 10 players repositioned." << std::endl;
     }
 
     void kickBall(ma_engine* pEngine) {
@@ -97,23 +155,42 @@ public:
         std::cout << "KICK! Applying random force." << std::endl;
     }
 
-
     void checkGoals(ma_engine* pEngine) {
-        if (ball.checkGoal(field.getHeight(), field.getGoalWidth(), field.getGoalHeight())) {
-            if (ball.getY() > 0) {
-                scoreTeam2++;
-                std::cout << "GOL ALEMANHA :( ! Score: Team 1: " << scoreTeam1 << " - Team 2: " << scoreTeam2 << std::endl;
-                ma_engine_play_sound(pEngine, "../soccer/assets/gol-alemanha.mp3", NULL);
-            } else {
-                scoreTeam1++;
-                std::cout << "GOL BRASIL :) ! Score: Team 1: " << scoreTeam1 << " - Team 2: " << scoreTeam2 << std::endl;
-                ma_engine_play_sound(pEngine, "../soccer/assets/gol-brasil.mp3", NULL);
-            }
-            ball.reset();
-            playerBrazil.reset();
-            playerGermany.reset();
+    if (ball.checkGoal(field.getHeight(), field.getGoalWidth(), field.getGoalHeight())) {
+        if (ball.getY() > 0) {
+            scoreTeam2++;
+            std::cout << "GOL ALEMANHA :( ! Score: BRA " << scoreTeam1 << " - ALE " << scoreTeam2 << std::endl;
+            ma_engine_play_sound(pEngine, "../soccer/assets/gol-alemanha.mp3", NULL);
+        } else {
+            scoreTeam1++;
+            std::cout << "GOL BRASIL :) ! Score: BRA " << scoreTeam1 << " - ALE " << scoreTeam2 << std::endl;
+            ma_engine_play_sound(pEngine, "../soccer/assets/gol-brasil.mp3", NULL);
         }
+        
+        // Reset ball to center
+        ball.reset();
+        
+        // Reset all Brazilian players to their initial positions
+        float braStartY = field.getHeight() / 3.0f;
+        for (int i = 0; i < playersBrazil.size(); i++) {
+            float startX = -20.0f + (i * 10.0f);
+            float startY = braStartY + ((i % 2) * 8.0f);
+            playersBrazil[i].reset();
+            playersBrazil[i].setInitialPosition(startX, startY);
+        }
+        
+        // Reset all German players to their initial positions
+        float gerStartY = -field.getHeight() / 3.0f;
+        for (int i = 0; i < playersGermany.size(); i++) {
+            float startX = -20.0f + (i * 10.0f);
+            float startY = gerStartY - ((i % 2) * 8.0f);
+            playersGermany[i].reset();
+            playersGermany[i].setInitialPosition(startX, startY);
+        }
+        
+        std::cout << "All players reset to starting positions after goal!" << std::endl;
     }
+}
 
     void handleBallMovement() {
         const float BALL_FORCE = 0.3f; // Constant force applied by arrow keys
@@ -352,9 +429,8 @@ int main(int argc, char** argv) {
 
     printf("=== 3D SOCCER SIMULATION ===\n");
     printf("Controls:\n");
-    printf("WASD - Move player\n");
     printf("Arrow keys - Move ball\n");
-    printf("SPACE - Jump\n");
+    printf("J - Ball jump\n");
     printf("K - Kick ball with whistle\n");
     printf("Mouse drag - Control camera\n");
     printf("Mouse wheel - Zoom\n");
@@ -362,6 +438,9 @@ int main(int argc, char** argv) {
     printf("O - Zoom out\n");
     printf("R - Reset game\n");
     printf("ESC - Exit\n");
+    printf("=============================\n");
+    printf("TEAMS: 5 BRA vs 5 GER players\n");
+    printf("AI players will chase and hit the ball!\n");
     printf("=============================\n");
 
     glutMainLoop();

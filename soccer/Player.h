@@ -19,6 +19,13 @@ enum TeamColor {
     TEAM_GERMANY
 };
 
+enum PlayerState {
+    STATE_IDLE,
+    STATE_ALIGNING,
+    STATE_ATTACKING,
+    STATE_COOLDOWN
+};
+
 class Player {
 private:
     std::vector<PlayerSegment> segments;
@@ -27,14 +34,26 @@ private:
     TeamColor teamColor;
     float t; // Time parameter for animation
     float rotation; // Player's rotation angle (facing direction)
+    
+    // AI behavior variables
+    PlayerState currentState;
+    float stateTimer;
+    float detectionRadius;
+    float targetRotation;
+    float rotationSpeed;
+    float attackForce;
+    
+    // Store initial position for reset
+    float initialX, initialY;
 
 public:
     Player(int numSegments = 5, float startX = 0.0f, float startY = -15.0f, TeamColor team = TEAM_BRAZIL);
 
     void update();
     void render();
-    void processInput(int keys[256]);
+    void updateAI(Ball& ball); // New AI update method
     void reset();
+    void setInitialPosition(float x, float y); // New method to set initial position
     void checkBallCollision(Ball& ball);
 
     // Getters
@@ -47,6 +66,9 @@ private:
     void updateSegments();
     void applyPhysics();
     void setSegmentColor(int segmentIndex);
+    float getDistanceToBall(const Ball& ball) const;
+    float getAngleToBall(const Ball& ball) const;
+    void transitionToState(PlayerState newState);
 };
 
 #endif

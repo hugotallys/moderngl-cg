@@ -1,7 +1,9 @@
 #include "Player.h"
 
 Player::Player(int numSegments, float startX, float startY, TeamColor team) 
-    : teamColor(team), t(0.0f), rotation(0.0f) {
+    : teamColor(team), t(0.0f), rotation(0.0f), currentState(STATE_IDLE), 
+      stateTimer(0.0f), detectionRadius(16.0f), targetRotation(0.0f),
+      rotationSpeed(0.05f), attackForce(0.2f), initialX(startX), initialY(startY) {
     segments.resize(numSegments);
     angles.resize(numSegments);
     
@@ -25,8 +27,90 @@ Player::Player(int numSegments, float startX, float startY, TeamColor team)
 
 void Player::update() {
     t += 0.25f; // Increment time parameter
+    stateTimer += 0.016f; // Assuming ~60 FPS (16ms per frame)
     applyPhysics();
     updateSegments();
+}
+
+void Player::updateAI(Ball& ball) {
+    float distanceToBall = getDistanceToBall(ball);
+    
+    switch (currentState) {
+        case STATE_IDLE: {
+            // Just wiggle tail, check if ball is nearby
+            if (distanceToBall < detectionRadius) {
+                transitionToState(STATE_ALIGNING);
+                targetRotation = getAngleToBall(ball);
+            }
+            break;
+        }
+            
+        case STATE_ALIGNING: {
+            // Gradually rotate towards the ball
+            float angleDiff = targetRotation - rotation;
+            
+            // Normalize angle difference to [-PI, PI]
+            while (angleDiff > M_PI) angleDiff -= 2 * M_PI;
+            while (angleDiff < -M_PI) angleDiff += 2 * M_PI;
+            
+            if (abs(angleDiff) > 0.1f) {
+                // Still need to rotate
+                if (angleDiff > 0) {
+                    rotation += rotationSpeed;
+                } else {
+                    rotation -= rotationSpeed;
+                }
+                // Update target rotation in case ball moved
+                targetRotation = getAngleToBall(ball);
+            } else {
+                // Aligned, now attack
+                transitionToState(STATE_ATTACKING);
+            }
+            
+            // If ball moved away during alignment, go back to idle
+            if (distanceToBall > detectionRadius * 1.5f) {
+                transitionToState(STATE_IDLE);
+            }
+            break;
+        }
+            
+        case STATE_ATTACKING: {
+            // Move forward to hit the ball
+            segments[0].vx += attackForce * cos(rotation);
+            segments[0].vy += attackForce * sin(rotation);
+            
+            // Transition to cooldown after a short attack duration
+            if (stateTimer > 0.3f) { // Attack for 0.3 seconds
+                transitionToState(STATE_COOLDOWN);
+            }
+            break;
+        }
+            
+        case STATE_COOLDOWN: {
+            // Do nothing for a while to prevent immediate re-engagement
+            if (stateTimer > 2.0f) { // Cooldown for 2 seconds
+                transitionToState(STATE_IDLE);
+            }
+            break;
+        }
+    }
+}
+
+void Player::transitionToState(PlayerState newState) {
+    currentState = newState;
+    stateTimer = 0.0f;
+}
+
+float Player::getDistanceToBall(const Ball& ball) const {
+    float dx = segments[0].x - ball.getX();
+    float dy = segments[0].y - ball.getY();
+    return sqrt(dx * dx + dy * dy);
+}
+
+float Player::getAngleToBall(const Ball& ball) const {
+    float dx = ball.getX() - segments[0].x;
+    float dy = ball.getY() - segments[0].y;
+    return atan2(dy, dx);
 }
 
 void Player::setSegmentColor(int segmentIndex) {
@@ -65,50 +149,37 @@ void Player::render() {
     }
 }
 
-void Player::processInput(int inputKeys[256]) {
-    float moveForce = 0.3f;
-    float rotationSpeed = 0.1f; // Rotation speed in radians
-
-    // A/D keys rotate the player
-    if (inputKeys['a'] || inputKeys['A']) {
-        rotation += rotationSpeed; // Rotate counter-clockwise
-    }
-    if (inputKeys['d'] || inputKeys['D']) {
-        rotation -= rotationSpeed; // Rotate clockwise
-    }
-
-    // W/S keys move forward/backward in the direction the player is facing
-    if (inputKeys['w'] || inputKeys['W']) {
-        // Move forward in the direction the player is facing
-        segments[0].vx += moveForce * cos(rotation);
-        segments[0].vy += moveForce * sin(rotation);
-    }
-    if (inputKeys['s'] || inputKeys['S']) {
-        // Move backward (opposite to facing direction)
-        segments[0].vx -= moveForce * cos(rotation);
-        segments[0].vy -= moveForce * sin(rotation);
-    }
-
-    // Limit maximum speed
-    float maxSpeed = 1.5f;
-    if (segments[0].vx > maxSpeed) segments[0].vx = maxSpeed;
-    if (segments[0].vx < -maxSpeed) segments[0].vx = -maxSpeed;
-    if (segments[0].vy > maxSpeed) segments[0].vy = maxSpeed;
-    if (segments[0].vy < -maxSpeed) segments[0].vy = -maxSpeed;
-}
-
 void Player::reset() {
     t = 0.0f;
     rotation = 0.0f; // Reset rotation to face X direction
+    currentState = STATE_IDLE;
+    stateTimer = 0.0f;
+    targetRotation = 0.0f;
+    
     for (size_t i = 0; i < segments.size(); i++) {
-        segments[i].x = -15.0f + (i * 2.0f);
-        segments[i].y = -15.0f;
+        segments[i].x = initialX + (i * 2.0f);
+        segments[i].y = initialY;
         segments[i].z = segments[i].radius;
         segments[i].vx = 0.0f;
         segments[i].vy = 0.0f;
         segments[i].vz = 0.0f;
         segments[i].angle = 0.0f;
         angles[i] = 0.0f;
+    }
+}
+
+void Player::setInitialPosition(float x, float y) {
+    initialX = x;
+    initialY = y;
+    
+    // Update current position immediately
+    for (size_t i = 0; i < segments.size(); i++) {
+        segments[i].x = x + (i * 2.0f);
+        segments[i].y = y;
+        segments[i].z = segments[i].radius;
+        segments[i].vx = 0.0f;
+        segments[i].vy = 0.0f;
+        segments[i].vz = 0.0f;
     }
 }
 
@@ -132,11 +203,12 @@ void Player::checkBallCollision(Ball& ball) {
             segments[0].z - nz * minDistance
         );
 
-        // Apply player velocity to ball
+        // Apply player velocity to ball with more force during attack state
+        float forceMultiplier = (currentState == STATE_ATTACKING) ? 3.0f : 1.5f;
         ball.setVelocity(
-            segments[0].vx * 1.5f,
-            segments[0].vy * 1.5f,
-            segments[0].vz * 1.5f
+            segments[0].vx * forceMultiplier,
+            segments[0].vy * forceMultiplier,
+            segments[0].vz * forceMultiplier
         );
     }
 }
