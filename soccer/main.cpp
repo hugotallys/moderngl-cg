@@ -33,25 +33,30 @@ class SoccerGame {
     std::vector<Player> playersBrazil;  // Changed from single player to vector
     std::vector<Player> playersGermany; // Changed from single player to vector
     int scoreTeam1, scoreTeam2;
+    bool firstKick;
 
 public:
     SoccerGame() : field(68.0f, 105.0f), ball(0.0f, 0.0f, 1.0f, 1.0f),
-                   scoreTeam1(0), scoreTeam2(0) {
+                   scoreTeam1(0), scoreTeam2(0), firstKick(true) {
         
         // Create 5 Brazilian players
-        float braStartY = field.getHeight() / 3.0f; // Position them in Brazilian half
+        float braStartY = -field.getHeight() / 3.0f; // Position them in Brazilian half
         for (int i = 0; i < 5; i++) {
             float startX = -20.0f + (i * 10.0f); // Spread them across the field
             float startY = braStartY + ((i % 2) * 8.0f); // Alternate Y positions slightly
             playersBrazil.emplace_back(5, startX, startY, TEAM_BRAZIL);
+            // Set field boundaries for each player
+            playersBrazil[i].setFieldBoundaries(field.getWidth(), field.getHeight());
         }
         
         // Create 5 German players
-        float gerStartY = -field.getHeight() / 3.0f; // Position them in German half
+        float gerStartY = field.getHeight() / 3.0f; // Position them in German half
         for (int i = 0; i < 5; i++) {
             float startX = -20.0f + (i * 10.0f); // Spread them across the field
             float startY = gerStartY - ((i % 2) * 8.0f); // Alternate Y positions slightly
             playersGermany.emplace_back(5, startX, startY, TEAM_GERMANY);
+            // Set field boundaries for each player
+            playersGermany[i].setFieldBoundaries(field.getWidth(), field.getHeight());
         }
     }
 
@@ -106,6 +111,8 @@ public:
         scoreTeam1 = 0;
         scoreTeam2 = 0;
         ball.reset();
+        firstKick = true; // Reset first kick flag when game is reset
+
         
         // Reset all Brazilian players to their initial positions
         float braStartY = field.getHeight() / 3.0f;
@@ -131,9 +138,16 @@ public:
     }
 
     void kickBall(ma_engine* pEngine) {
-        // 1. Play the referee whistle sound
-        ma_engine_play_sound(pEngine, "../soccer/assets/torcida.mp3", NULL);
-        ma_engine_play_sound(pEngine, "../soccer/assets/autoriza.mp3", NULL);
+        // Only play the opening sounds on the first kick
+        if (firstKick) {
+            // 1. Play the referee whistle and crowd sounds for the first kick
+            ma_engine_play_sound(pEngine, "../soccer/assets/torcida.mp3", NULL);
+            ma_engine_play_sound(pEngine, "../soccer/assets/autoriza.mp3", NULL);
+            firstKick = false; // Mark that we've played the opening sounds
+            std::cout << "GAME START! Opening sounds played." << std::endl;
+        } else {
+            std::cout << "KICK! Ball kicked." << std::endl;
+        }
 
         // 2. Apply a random force vector to the ball
         const float KICK_STRENGTH = 5.0f;

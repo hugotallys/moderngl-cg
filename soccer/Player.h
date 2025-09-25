@@ -45,6 +45,9 @@ private:
     
     // Store initial position for reset
     float initialX, initialY;
+    
+    // Field boundaries for collision detection
+    float fieldWidth, fieldHeight;
 
 public:
     Player(int numSegments = 5, float startX = 0.0f, float startY = -15.0f, TeamColor team = TEAM_BRAZIL);
@@ -54,6 +57,7 @@ public:
     void updateAI(Ball& ball); // New AI update method
     void reset();
     void setInitialPosition(float x, float y); // New method to set initial position
+    void setFieldBoundaries(float width, float height); // New method to set field boundaries
     void checkBallCollision(Ball& ball);
 
     // Getters
@@ -65,6 +69,7 @@ public:
 private:
     void updateSegments();
     void applyPhysics();
+    void checkFieldBoundaries(); // New method for field boundary collision
     void setSegmentColor(int segmentIndex);
     float getDistanceToBall(const Ball& ball) const;
     float getAngleToBall(const Ball& ball) const;

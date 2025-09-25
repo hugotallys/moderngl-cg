@@ -3,7 +3,8 @@
 Player::Player(int numSegments, float startX, float startY, TeamColor team) 
     : teamColor(team), t(0.0f), rotation(0.0f), currentState(STATE_IDLE), 
       stateTimer(0.0f), detectionRadius(16.0f), targetRotation(0.0f),
-      rotationSpeed(0.05f), attackForce(0.2f), initialX(startX), initialY(startY) {
+      rotationSpeed(0.05f), attackForce(0.1f), initialX(startX), initialY(startY),
+      fieldWidth(105.0f), fieldHeight(68.0f) {
     segments.resize(numSegments);
     angles.resize(numSegments);
     
@@ -29,8 +30,41 @@ void Player::update() {
     t += 0.25f; // Increment time parameter
     stateTimer += 0.016f; // Assuming ~60 FPS (16ms per frame)
     applyPhysics();
+    checkFieldBoundaries(); // Check field boundaries after physics
     updateSegments();
 }
+
+void Player::setFieldBoundaries(float width, float height) {
+    fieldWidth = width;
+    fieldHeight = height;
+}
+
+void Player::checkFieldBoundaries() {
+    // Get the head segment (first segment)
+    PlayerSegment& head = segments[0];
+    
+    // Check X boundaries (field width)
+    if (head.x < -fieldWidth / 2.0f + head.radius) {
+        head.x = -fieldWidth / 2.0f + head.radius;
+        head.vx = abs(head.vx) * 0.3f; // Bounce back with reduced velocity
+    }
+    if (head.x > fieldWidth / 2.0f - head.radius) {
+        head.x = fieldWidth / 2.0f - head.radius;
+        head.vx = -abs(head.vx) * 0.3f; // Bounce back with reduced velocity
+    }
+    
+    // Check Y boundaries (field height)
+    if (head.y < -fieldHeight / 2.0f + head.radius) {
+        head.y = -fieldHeight / 2.0f + head.radius;
+        head.vy = abs(head.vy) * 0.3f; // Bounce back with reduced velocity
+    }
+    if (head.y > fieldHeight / 2.0f - head.radius) {
+        head.y = fieldHeight / 2.0f - head.radius;
+        head.vy = -abs(head.vy) * 0.3f; // Bounce back with reduced velocity
+    }
+}
+
+// ...existing methods remain the same...
 
 void Player::updateAI(Ball& ball) {
     float distanceToBall = getDistanceToBall(ball);

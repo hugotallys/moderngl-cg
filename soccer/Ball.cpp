@@ -10,9 +10,9 @@ int Ball::update(float fieldWidth, float fieldHeight, float goalWidth, float goa
     z += vz;
 
     // Apply friction
-    vx *= 0.98f;
-    vy *= 0.98f;
-    vz *= 0.95f;
+    vx *= 0.99f;
+    vy *= 0.99f;
+    vz *= 0.99f;
 
     if (x >= goalWidth / 2 || x <= -goalWidth / 2 || z > goalHeight) {
         // Field boundary collisions
@@ -42,7 +42,7 @@ int Ball::update(float fieldWidth, float fieldHeight, float goalWidth, float goa
     }
 
     // Apply gravity
-    vz -= 0.2f;
+    vz -= 0.4f;
 }
 
 void Ball::render() {
