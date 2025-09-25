@@ -1,21 +1,23 @@
 #include "SoccerField.h"
 
-SoccerField::SoccerField(float w, float h, float gw, float gh, float gd)
-    : width(w), height(h), goalWidth(gw), goalHeight(gh), goalDepth(gd) {}
+SoccerField::SoccerField(
+        const float w, const float h, const float gw, const float gh
+    )
+    : width(w), height(h), goalWidth(gw), goalHeight(gh) {}
 
-void SoccerField::render() {
+void SoccerField::render() const {
     drawFieldSurface();
     drawFieldLines();
 }
 
-void SoccerField::renderGoals() {
+void SoccerField::renderGoals() const {
     // Goal 1 (top)
-    drawGoal(0, height / 2 + goalDepth / 2, 0);
+    drawGoal(height/2);
     // Goal 2 (bottom)
-    drawGoal(0, -height / 2 - goalDepth / 2, 0);
+    drawGoal(-height/2);
 }
 
-void SoccerField::drawFieldSurface() {
+void SoccerField::drawFieldSurface() const {
     glColor3f(0.0f, 0.8f, 0.0f); // Green field
     glBegin(GL_TRIANGLES);
     // First triangle
@@ -30,9 +32,9 @@ void SoccerField::drawFieldSurface() {
     glEnd();
 }
 
-void SoccerField::drawFieldLines() {
+void SoccerField::drawFieldLines() const {
     glColor3f(1.0f, 1.0f, 1.0f); // White lines
-    glLineWidth(2.0f);
+    glLineWidth(4.0f);
     glBegin(GL_LINES);
 
     // Field borders
@@ -51,75 +53,100 @@ void SoccerField::drawFieldLines() {
 
     // Center circle
     for (int i = 0; i < 360; i += 10) {
-        float angle1 = i * M_PI / 180.0f;
-        float angle2 = (i + 10) * M_PI / 180.0f;
+        const float angle1 = static_cast<float>(i * M_PI) / 180.0f;
+        const float angle2 = static_cast<float>((i + 10) * M_PI) / 180.0f;
         glVertex3f(cos(angle1) * 9.15f, sin(angle1) * 9.15f, 0.01f);
         glVertex3f(cos(angle2) * 9.15f, sin(angle2) * 9.15f, 0.01f);
     }
 
+    // Penalty areas
+    float areaWidth = 40.32f;
+    float areaHeight = 16.5f;
+
+    // Penalty area 1 (top)
+    glVertex3f(-areaWidth / 2, height / 2, 0.01f);
+    glVertex3f(areaWidth / 2, height / 2, 0.01f);
+    glVertex3f(areaWidth / 2, height / 2, 0.01f);
+    glVertex3f(areaWidth / 2, height / 2 - areaHeight, 0.01f);
+    glVertex3f(areaWidth / 2, height / 2 - areaHeight, 0.01f);
+    glVertex3f(-areaWidth / 2, height / 2 - areaHeight, 0.01f);
+    glVertex3f(-areaWidth / 2, height / 2 - areaHeight, 0.01f);
+    glVertex3f(-areaWidth / 2, height / 2, 0.01f);
+
+    // Penalty area 2 (bottom)
+    glVertex3f(-areaWidth / 2, -height / 2, 0.01f);
+    glVertex3f(areaWidth / 2, -height / 2, 0.01f);
+    glVertex3f(areaWidth / 2, -height / 2, 0.01f);
+    glVertex3f(areaWidth / 2, -height / 2 + areaHeight, 0.01f);
+    glVertex3f(areaWidth / 2, -height / 2 + areaHeight, 0.01f);
+    glVertex3f(-areaWidth / 2, -height / 2 + areaHeight, 0.01f);
+    glVertex3f(-areaWidth / 2, -height / 2 + areaHeight, 0.01f);
+    glVertex3f(-areaWidth / 2, -height / 2, 0.01f);
+
+    // Penalty Arcs
+
+    const float penaltyArcYTop = height / 2 - areaHeight;
+    const float penaltyArcYBottom = -height / 2 + areaHeight;
+
+    // First arc (top)
+    for (int i = 180; i < 360; i += 10)
+    {
+        const float angle1 = static_cast<float>(i * M_PI) / 180.0f;
+        const float angle2 = static_cast<float>((i + 10) * M_PI) / 180.0f;
+        glVertex3f(cos(angle1) * 9.15f, penaltyArcYTop + sin(angle1) * 9.15f, 0.01f);
+        glVertex3f(cos(angle2) * 9.15f, penaltyArcYTop + sin(angle2) * 9.15f, 0.01f);
+    }
+
+    // Second arc (bottom)
+    for (int i = 0; i < 180; i += 10)
+    {
+        const float angle1 = static_cast<float>(i * M_PI) / 180.0f;
+        const float angle2 = static_cast<float>((i + 10) * M_PI) / 180.0f;
+        glVertex3f(cos(angle1) * 9.15f, penaltyArcYBottom + sin(angle1) * 9.15f, 0.01f);
+        glVertex3f(cos(angle2) * 9.15f, penaltyArcYBottom + sin(angle2) * 9.15f, 0.01f);
+    }
+
     // Goal areas
-    float areaWidth = 16.5f;
-    float areaHeight = 40.32f;
+
+    const float goalAreaWidth = 18.32f;
+    const float goalAreaHeight = 5.5f;
 
     // Goal area 1 (top)
-    glVertex3f(-areaWidth / 2, height / 2, 0.01f);
-    glVertex3f(areaWidth / 2, height / 2, 0.01f);
-    glVertex3f(areaWidth / 2, height / 2, 0.01f);
-    glVertex3f(areaWidth / 2, height / 2 - areaHeight, 0.01f);
-    glVertex3f(areaWidth / 2, height / 2 - areaHeight, 0.01f);
-    glVertex3f(-areaWidth / 2, height / 2 - areaHeight, 0.01f);
-    glVertex3f(-areaWidth / 2, height / 2 - areaHeight, 0.01f);
-    glVertex3f(-areaWidth / 2, height / 2, 0.01f);
+    glVertex3f(-goalAreaWidth / 2, height / 2, 0.01f);
+    glVertex3f(goalAreaWidth / 2, height / 2, 0.01f);
+    glVertex3f(goalAreaWidth / 2, height / 2, 0.01f);
+    glVertex3f(goalAreaWidth / 2, height / 2 - goalAreaHeight, 0.01f);
+    glVertex3f(goalAreaWidth / 2, height / 2 - goalAreaHeight, 0.01f);
+    glVertex3f(-goalAreaWidth / 2, height / 2 - goalAreaHeight, 0.01f);
+    glVertex3f(-goalAreaWidth / 2, height / 2 - goalAreaHeight, 0.01f);
+    glVertex3f(-goalAreaWidth / 2, height / 2, 0.01f);
 
     // Goal area 2 (bottom)
-    glVertex3f(-areaWidth / 2, -height / 2, 0.01f);
-    glVertex3f(areaWidth / 2, -height / 2, 0.01f);
-    glVertex3f(areaWidth / 2, -height / 2, 0.01f);
-    glVertex3f(areaWidth / 2, -height / 2 + areaHeight, 0.01f);
-    glVertex3f(areaWidth / 2, -height / 2 + areaHeight, 0.01f);
-    glVertex3f(-areaWidth / 2, -height / 2 + areaHeight, 0.01f);
-    glVertex3f(-areaWidth / 2, -height / 2 + areaHeight, 0.01f);
-    glVertex3f(-areaWidth / 2, -height / 2, 0.01f);
+    glVertex3f(-goalAreaWidth / 2, -height / 2, 0.01f);
+    glVertex3f(goalAreaWidth / 2, -height / 2, 0.01f);
+    glVertex3f(goalAreaWidth / 2, -height / 2, 0.01f);
+    glVertex3f(goalAreaWidth / 2, -height / 2 + goalAreaHeight, 0.01f);
+    glVertex3f(goalAreaWidth / 2, -height / 2 + goalAreaHeight, 0.01f);
+    glVertex3f(-goalAreaWidth / 2, -height / 2 + goalAreaHeight, 0.01f);
+    glVertex3f(-goalAreaWidth / 2, -height / 2 + goalAreaHeight, 0.01f);
+    glVertex3f(-goalAreaWidth / 2, -height / 2, 0.01f);
 
     glEnd();
 }
 
-void SoccerField::drawGoal(float x, float y, float z) {
+void SoccerField::drawGoal(const float yAnchor) const {
     glColor3f(1.0f, 1.0f, 1.0f); // White posts
+    glLineWidth(6.0f);
 
     // Left post
-    glPushMatrix();
-    glTranslatef(x - goalWidth / 2, y, z + goalHeight / 2);
-    glScalef(0.5f, 0.5f, goalHeight);
-    glutSolidCube(1.0f);
-    glPopMatrix();
-
-    // Right post
-    glPushMatrix();
-    glTranslatef(x + goalWidth / 2, y, z + goalHeight / 2);
-    glScalef(0.5f, 0.5f, goalHeight);
-    glutSolidCube(1.0f);
-    glPopMatrix();
-
-    // Crossbar
-    glPushMatrix();
-    glTranslatef(x, y, z + goalHeight);
-    glScalef(goalWidth, 0.5f, 0.5f);
-    glutSolidCube(1.0f);
-    glPopMatrix();
-
-    // Net (simplified)
-    glColor3f(0.8f, 0.8f, 0.8f);
     glBegin(GL_LINES);
-    for (int i = 0; i <= 10; i++) {
-        float pos = x - goalWidth / 2 + (goalWidth * i / 10.0f);
-        glVertex3f(pos, y - goalDepth, z);
-        glVertex3f(pos, y - goalDepth, z + goalHeight);
-    }
-    for (int i = 0; i <= 10; i++) {
-        float pos = z + (goalHeight * i / 10.0f);
-        glVertex3f(x - goalWidth / 2, y - goalDepth, pos);
-        glVertex3f(x + goalWidth / 2, y - goalDepth, pos);
-    }
+    glVertex3f(-goalWidth / 2, yAnchor, 0.0f);
+    glVertex3f(-goalWidth / 2, yAnchor, goalHeight);
+    // Right post
+    glVertex3f(goalWidth / 2, yAnchor, 0.0f);
+    glVertex3f(goalWidth / 2, yAnchor, goalHeight);
+    // Crossbar
+    glVertex3f(-goalWidth / 2, yAnchor, goalHeight);
+    glVertex3f(goalWidth / 2, yAnchor, goalHeight);
     glEnd();
 }

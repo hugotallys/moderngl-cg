@@ -1,8 +1,6 @@
-//
-// Created by Hugo Tallys on 12/09/25.
 #include <OpenGL/gl.h>
 #include <GLUT/glut.h>
-#include <stdlib.h>
+#include <iostream>
 
 #include "SoccerField.h"
 #include "Ball.h"
@@ -19,7 +17,6 @@ Camera* camera;
 int keys[256];
 
 class SoccerGame {
-private:
     SoccerField field;
     Ball ball;
     Player player;
@@ -50,17 +47,17 @@ public:
         scoreTeam2 = 0;
         ball.reset();
         player.reset();
-        printf("Game reset!\n");
+        std::cout << "Game reset!" << std::endl;
     }
 
     void checkGoals() {
         if (ball.checkGoal(field.getHeight(), field.getGoalWidth(), field.getGoalHeight())) {
             if (ball.getY() > 0) {
                 scoreTeam2++;
-                printf("GOAL TEAM 2! Score: Team 1: %d - Team 2: %d\n", scoreTeam1, scoreTeam2);
+                std::cout << "GOAL TEAM 2! Score: Team 1: " << scoreTeam1 << " - Team 2: " << scoreTeam2 << std::endl;
             } else {
                 scoreTeam1++;
-                printf("GOAL TEAM 1! Score: Team 1: %d - Team 2: %d\n", scoreTeam1, scoreTeam2);
+                std::cout << "GOAL TEAM 1! Score: Team 1: " << scoreTeam1 << " - Team 2: " << scoreTeam2 << std::endl;
             }
             ball.reset();
             player.reset();
@@ -159,7 +156,7 @@ int main(int argc, char** argv) {
     // Initialize camera
     camera = new Camera(80.0f, 75.0f, WINDOW_WIDTH, WINDOW_HEIGHT);
     camera->setTarget(0.0f, 0.0f, 0.0f);
-    camera->setAngles(30.0f, 0.0f);
+    camera->setAngles(90.0f, 0.0f); // change to angle Z
     camera->setupProjection();
 
     // Register callbacks
