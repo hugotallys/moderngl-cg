@@ -20,6 +20,11 @@
 // --- Audio Engine ---
 ma_engine engine;
 
+ma_sound autorizaSound;
+ma_sound torcidaSound;
+ma_sound golBrasilSound;
+ma_sound golAlemanhaSound;
+
 // Game objects
 Camera* camera;
 
@@ -36,11 +41,11 @@ class SoccerGame {
     bool firstKick;
 
 public:
-    SoccerGame() : field(68.0f, 105.0f), ball(0.0f, 0.0f, 1.0f, 1.0f),
+    SoccerGame() : field(68.0f, 105.0f), ball(0.0f, 0.0f, 1.0f, 2.0f),
                    scoreTeam1(0), scoreTeam2(0), firstKick(true) {
         
         // Create 5 Brazilian players
-        float braStartY = -field.getHeight() / 3.0f; // Position them in Brazilian half
+        float braStartY = field.getHeight() / 3.0f; // Position them in Brazilian half
         for (int i = 0; i < 5; i++) {
             float startX = -20.0f + (i * 10.0f); // Spread them across the field
             float startY = braStartY + ((i % 2) * 8.0f); // Alternate Y positions slightly
@@ -50,7 +55,7 @@ public:
         }
         
         // Create 5 German players
-        float gerStartY = field.getHeight() / 3.0f; // Position them in German half
+        float gerStartY = -field.getHeight() / 3.0f; // Position them in German half
         for (int i = 0; i < 5; i++) {
             float startX = -20.0f + (i * 10.0f); // Spread them across the field
             float startY = gerStartY - ((i % 2) * 8.0f); // Alternate Y positions slightly
@@ -140,9 +145,19 @@ public:
     void kickBall(ma_engine* pEngine) {
         // Only play the opening sounds on the first kick
         if (firstKick) {
-            // 1. Play the referee whistle and crowd sounds for the first kick
-            ma_engine_play_sound(pEngine, "../soccer/assets/torcida.mp3", NULL);
-            ma_engine_play_sound(pEngine, "../soccer/assets/autoriza.mp3", NULL);
+            // 1. Play the autoriza and crowd sounds for the first kick
+
+            if (!ma_sound_is_playing(&torcidaSound)) {
+                // If it's not playing, start it from the beginning.
+                ma_sound_start(&torcidaSound);
+            }
+
+            if (!ma_sound_is_playing(&autorizaSound)) {
+                // If it's not playing, start it from the beginning.
+                ma_sound_start(&autorizaSound);
+            }
+
+
             firstKick = false; // Mark that we've played the opening sounds
             std::cout << "GAME START! Opening sounds played." << std::endl;
         } else {
@@ -174,11 +189,17 @@ public:
         if (ball.getY() > 0) {
             scoreTeam2++;
             std::cout << "GOL ALEMANHA :( ! Score: BRA " << scoreTeam1 << " - ALE " << scoreTeam2 << std::endl;
-            ma_engine_play_sound(pEngine, "../soccer/assets/gol-alemanha.mp3", NULL);
+            if (!ma_sound_is_playing(&golAlemanhaSound)) {
+                // If it's not playing, start it from the beginning.
+                ma_sound_start(&golAlemanhaSound);
+            }
         } else {
             scoreTeam1++;
             std::cout << "GOL BRASIL :) ! Score: BRA " << scoreTeam1 << " - ALE " << scoreTeam2 << std::endl;
-            ma_engine_play_sound(pEngine, "../soccer/assets/gol-brasil.mp3", NULL);
+            if (!ma_sound_is_playing(&golBrasilSound)) {
+                // If it's not playing, start it from the beginning.
+                ma_sound_start(&golBrasilSound);
+            }
         }
         
         // Reset ball to center
@@ -304,8 +325,8 @@ public:
         glLineWidth(4.0f);
 
         // Team names
-        drawCenteredText(-boardWidth / 4.0f, header_cy, "BRA", 0.04f);
-        drawCenteredText( boardWidth / 4.0f, header_cy, "ALE", 0.04f);
+        drawCenteredText(boardWidth / 4.0f, header_cy, "BRA", 0.04f);
+        drawCenteredText( -boardWidth / 4.0f, header_cy, "ALE", 0.04f);
 
         // Scores
         char score1Str[4];
@@ -313,8 +334,8 @@ public:
         char score2Str[4];
         snprintf(score2Str, sizeof(score2Str), "%d", scoreTeam2);
 
-        drawCenteredText(-boardWidth / 4.0f, score_cy, score1Str, 0.05f);
-        drawCenteredText( boardWidth / 4.0f, score_cy, score2Str, 0.05f);
+        drawCenteredText(boardWidth / 4.0f, score_cy, score1Str, 0.05f);
+        drawCenteredText( -boardWidth / 4.0f, score_cy, score2Str, 0.05f);
 
         glPopMatrix(); // Pop the Z-offset matrix
         glPopMatrix(); // Restore the original modelview matrix
@@ -399,11 +420,20 @@ int main(int argc, char** argv) {
     srand(time(0));
 
     // Initialize the audio engine
-    ma_result result = ma_engine_init(NULL, &engine);
-    if (result != MA_SUCCESS) {
-        printf("Failed to initialize audio engine.");
-        return -1;
-    }
+    ma_engine_init(NULL, &engine);
+
+    ma_sound_init_from_file(
+        &engine, "../soccer/assets/autoriza.mp3", 0, NULL, NULL, &autorizaSound
+    );
+    ma_sound_init_from_file(
+        &engine, "../soccer/assets/torcida.mp3", 0, NULL, NULL, &torcidaSound
+    );
+    ma_sound_init_from_file(
+        &engine, "../soccer/assets/gol-brasil.mp3", 0, NULL, NULL, &golBrasilSound
+    );
+    ma_sound_init_from_file(
+        &engine, "../soccer/assets/gol-alemanha.mp3", 0, NULL, NULL, &golAlemanhaSound
+    );
 
     // Initialize GLUT
     glutInit(&argc, argv);

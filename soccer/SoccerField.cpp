@@ -136,7 +136,7 @@ void SoccerField::drawFieldLines() const {
 
 void SoccerField::drawGoal(const float yAnchor) const {
     glColor3f(1.0f, 1.0f, 1.0f); // White posts
-    glLineWidth(6.0f);
+    glLineWidth(10.0f);
 
     // Left post
     glBegin(GL_LINES);

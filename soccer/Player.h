@@ -32,6 +32,8 @@ private:
     std::vector<float> angles; // Cumulative angles for wiggling effect
     int keys[256];
     TeamColor teamColor;
+    float dt;
+    float A;
     float t; // Time parameter for animation
     float rotation; // Player's rotation angle (facing direction)
     

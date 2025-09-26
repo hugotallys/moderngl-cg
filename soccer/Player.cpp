@@ -1,13 +1,19 @@
 #include "Player.h"
 
 Player::Player(int numSegments, float startX, float startY, TeamColor team) 
-    : teamColor(team), t(0.0f), rotation(0.0f), currentState(STATE_IDLE), 
+    : teamColor(team), t(0.0f), dt(0.25), A(0.15f), rotation(0.0f), currentState(STATE_IDLE),
       stateTimer(0.0f), detectionRadius(16.0f), targetRotation(0.0f),
       rotationSpeed(0.05f), attackForce(0.1f), initialX(startX), initialY(startY),
       fieldWidth(105.0f), fieldHeight(68.0f) {
     segments.resize(numSegments);
     angles.resize(numSegments);
-    
+
+    if (team == TEAM_GERMANY) {
+        rotation = M_PI_2; // Facing right (X direction)
+    } else {
+        rotation = 3 * M_PI_2; // Facing left (negative X direction)
+    }
+
     for (int i = 0; i < numSegments; ++i) {
         segments[i].x = startX + (i * 2.0f);
         segments[i].y = startY;
@@ -27,7 +33,7 @@ Player::Player(int numSegments, float startX, float startY, TeamColor team)
 }
 
 void Player::update() {
-    t += 0.25f; // Increment time parameter
+    t += dt; // Increment time parameter
     stateTimer += 0.016f; // Assuming ~60 FPS (16ms per frame)
     applyPhysics();
     checkFieldBoundaries(); // Check field boundaries after physics
@@ -71,6 +77,8 @@ void Player::updateAI(Ball& ball) {
     
     switch (currentState) {
         case STATE_IDLE: {
+                dt = 0.25f;
+                A = 0.15f;
             // Just wiggle tail, check if ball is nearby
             if (distanceToBall < detectionRadius) {
                 transitionToState(STATE_ALIGNING);
@@ -80,6 +88,9 @@ void Player::updateAI(Ball& ball) {
         }
             
         case STATE_ALIGNING: {
+            dt = .5f;
+            A  = .3f;
+
             // Gradually rotate towards the ball
             float angleDiff = targetRotation - rotation;
             
@@ -121,6 +132,9 @@ void Player::updateAI(Ball& ball) {
         }
             
         case STATE_COOLDOWN: {
+            dt = 0.25f; // Reset wiggling speed
+            A = 0.15f;  // Reset wiggling amplitude
+
             // Do nothing for a while to prevent immediate re-engagement
             if (stateTimer > 2.0f) { // Cooldown for 2 seconds
                 transitionToState(STATE_IDLE);
@@ -189,6 +203,12 @@ void Player::reset() {
     currentState = STATE_IDLE;
     stateTimer = 0.0f;
     targetRotation = 0.0f;
+
+    if (teamColor == TEAM_GERMANY) {
+        rotation = M_PI_2; // Facing right (X direction)
+    } else {
+        rotation = 3 * M_PI_2; // Facing left (negative X direction)
+    }
     
     for (size_t i = 0; i < segments.size(); i++) {
         segments[i].x = initialX + (i * 2.0f);
@@ -276,7 +296,7 @@ void Player::updateSegments() {
             dist += radius + (radius - radDec);
             
             // Calculate individual angle for this segment (similar to JS code)
-            angles[i] = 0.15f * sin(t - i * 0.9f);
+            angles[i] = A * sin(t - i * 0.9f);
             
             // Add cumulative angle from previous segment
             if (i > 1) {
