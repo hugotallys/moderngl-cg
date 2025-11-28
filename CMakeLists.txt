@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.10)
 project(moderngl_cg)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -9,6 +9,14 @@ find_package(GLEW REQUIRED)
 # Modern OpenGL - Triangle
 add_executable(moderngl_cg modern-triangle/main.cpp)
 target_link_libraries(moderngl_cg glfw GLEW::glew)
+set_target_properties(moderngl_cg PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+
+# Copy shader files to build directory
+add_custom_command(TARGET moderngl_cg POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/modern-triangle
+    $<TARGET_FILE_DIR:moderngl_cg>/modern-triangle
+)
 
 # Classic OpenGL - Pinwheel
 add_executable(pinwheel pinwheel/main.c)

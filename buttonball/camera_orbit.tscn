@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://g6axsw8bsdyg"]
+
+[ext_resource type="Script" uid="uid://xqcdje5igrqg" path="res://camera_orbit.gd" id="1_4sq6p"]
+
+[node name="CameraOrbit" type="Node3D"]
+script = ExtResource("1_4sq6p")
+
+[node name="PitchPivot" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="PitchPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)

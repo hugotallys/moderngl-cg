@@ -1,0 +1,134 @@
+[gd_scene load_steps=16 format=3 uid="uid://ce3hgjpjpa7qq"]
+
+[ext_resource type="Script" uid="uid://v4oo2l5hrpey" path="res://main.gd" id="1_272bh"]
+[ext_resource type="PackedScene" uid="uid://cnupdx4usery" path="res://ball.tscn" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://dsy3lkko3m44n" path="res://ball.gd" id="2_1bvp3"]
+[ext_resource type="PackedScene" uid="uid://d0ys3i5xws5k0" path="res://football_board.tscn" id="2_h2yge"]
+[ext_resource type="PackedScene" uid="uid://g6axsw8bsdyg" path="res://camera_orbit.tscn" id="4_lquwl"]
+[ext_resource type="PackedScene" uid="uid://c4qpcou0howse" path="res://goal.tscn" id="5_lquwl"]
+[ext_resource type="Script" uid="uid://dts11fulyrwnj" path="res://goal_area_team_a.gd" id="6_7mycd"]
+[ext_resource type="PackedScene" uid="uid://ch47drgb3ktid" path="res://player_agent.tscn" id="8_5vw27"]
+[ext_resource type="AudioStream" uid="uid://bv4xpoxydsd7v" path="res://referee-whistle.mp3" id="9_kek77"]
+[ext_resource type="AudioStream" uid="uid://re3t35wphg16" path="res://autoriza.mp3" id="10_4c57u"]
+[ext_resource type="AudioStream" uid="uid://cb2hjk2jcamp8" path="res://torcida.mp3" id="11_efxa6"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_5vw27"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_kek77"]
+sky_material = SubResource("ProceduralSkyMaterial_5vw27")
+
+[sub_resource type="Environment" id="Environment_4c57u"]
+background_mode = 1
+sky = SubResource("Sky_kek77")
+tonemap_mode = 2
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_lquwl"]
+size = Vector3(0.0114746, 0.107727, 0.204773)
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_272bh")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_4c57u")
+
+[node name="Ball" parent="." groups=["ball"] instance=ExtResource("2_0xm2m")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
+script = ExtResource("2_1bvp3")
+
+[node name="FootballBoard" parent="." instance=ExtResource("2_h2yge")]
+
+[node name="CameraOrbit" parent="." instance=ExtResource("4_lquwl")]
+transform = Transform3D(1, 0, 0, 0, 0.818992, 0.573805, 0, -0.573805, 0.818992, 0, 0, 0)
+
+[node name="GoalA" parent="." instance=ExtResource("5_lquwl")]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0.756387, 0.00174545, 0)
+
+[node name="GoalB" parent="." instance=ExtResource("5_lquwl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.756, 0.002, 0)
+
+[node name="GoalArea_TeamA" type="Area3D" parent="."]
+script = ExtResource("6_7mycd")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GoalArea_TeamA"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.754607, 0.0301067, -0.000256151)
+shape = SubResource("BoxShape3D_lquwl")
+
+[node name="ScoreLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.319485, -0.905833)
+text = "0 - 0"
+font_size = 48
+
+[node name="GoalArea_TeamB" type="Area3D" parent="."]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0.656875, 0, 0)
+script = ExtResource("6_7mycd")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GoalArea_TeamB"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0983453, 0.0301067, -0.000256094)
+shape = SubResource("BoxShape3D_lquwl")
+
+[node name="PlayerAgent" parent="." instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.362125, 0.055, 0.357791)
+team = 1
+
+[node name="PlayerAgent2" parent="." instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.362125, 0.055, 0.0442276)
+team = 1
+
+[node name="PlayerAgent3" parent="." instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.362125, 0.055, -0.302505)
+team = 1
+
+[node name="PlayerAgent4" parent="." instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.130725, 0.055, -0.302505)
+team = 1
+
+[node name="PlayerAgent5" parent="." instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.130725, 0.055, 0.0441796)
+team = 1
+
+[node name="PlayerAgent8" parent="." instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.160449, 0.055, 0.0441796)
+
+[node name="PlayerAgent9" parent="." instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.160449, 0.055, -0.296034)
+
+[node name="PlayerAgent10" parent="." instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.160449, 0.055, 0.343026)
+
+[node name="PlayerAgent11" parent="." instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.38655, 0.055, 0.343026)
+
+[node name="PlayerAgent12" parent="." instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.38655, 0.055, 0.039768)
+
+[node name="PlayerAgent13" parent="." instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.38655, 0.055, -0.292901)
+
+[node name="PlayerAgent14" parent="." instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.613036, 0.055, 0.0538878)
+
+[node name="PlayerAgent6" parent="." instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.130725, 0.055, 0.342786)
+team = 1
+
+[node name="PlayerAgent7" parent="." instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.584162, 0.055, 0.0378581)
+team = 1
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.588775, 0)
+shadow_enabled = true
+
+[node name="WhistleSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("9_kek77")
+
+[node name="AutorizaSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("10_4c57u")
+
+[node name="TorcidaSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("11_efxa6")
+
+[connection signal="body_entered" from="GoalArea_TeamA" to="GoalArea_TeamA" method="_on_body_entered"]
+[connection signal="body_entered" from="GoalArea_TeamB" to="GoalArea_TeamB" method="_on_body_entered"]

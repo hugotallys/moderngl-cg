@@ -415,6 +415,33 @@ void display() {
     glutSwapBuffers();
 }
 
+void setupLighting() {
+    // Enable lighting
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+
+    // Set ambient light properties (10% ambient)
+    GLfloat ambientLight[] = {0.3f, 0.3f, 0.3f, 1.0f}; // Ambient strength = 30%
+
+    GLfloat lightPosition[] = {50.0f, 0.0f, 50.0f, 1.0f}; // Light position above and to the side
+    GLfloat diffuseLight[] = {0.8f, 0.8f, 0.8f, 1.0f}; // Main light color (bright but not full)
+    GLfloat specularLight[] = {1.0f, 1.0f, 1.0f, 1.0f}; // Specular highlights
+
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
+
+    // Enable color material so glColor3f affects lighting
+    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+
+    // Set global ambient light (low to show diffuse effects better)
+    GLfloat globalAmbient[] = {0.2f, 0.2f, 0.2f, 1.0f};
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globalAmbient);
+}
+
+
 int main(int argc, char** argv) {
     // Seed the random number generator
     srand(time(0));
@@ -445,6 +472,9 @@ int main(int argc, char** argv) {
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.0f, 0.5f, 0.8f, 1.0f);
+
+    // Setup lighting
+    setupLighting();
 
     // Initialize camera
     camera = new Camera(80.0f, 75.0f, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -495,4 +525,3 @@ int main(int argc, char** argv) {
     delete camera;
     return 0;
 }
-

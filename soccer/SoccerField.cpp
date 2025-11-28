@@ -20,6 +20,7 @@ void SoccerField::renderGoals() const {
 void SoccerField::drawFieldSurface() const {
     glColor3f(0.0f, 0.8f, 0.0f); // Green field
     glBegin(GL_TRIANGLES);
+    glNormal3f(0.0f, 0.0f, 1.0f); // Upward normal
     // First triangle
     glVertex3f(-width / 2.0f, -height / 2.0f, 0.0f);
     glVertex3f(width / 2.0f, -height / 2.0f, 0.0f);
@@ -33,6 +34,9 @@ void SoccerField::drawFieldSurface() const {
 }
 
 void SoccerField::drawFieldLines() const {
+    // Disable lighting for lines - they should be bright white regardless of lighting
+    glDisable(GL_LIGHTING);
+
     glColor3f(1.0f, 1.0f, 1.0f); // White lines
     glLineWidth(4.0f);
     glBegin(GL_LINES);
@@ -132,9 +136,15 @@ void SoccerField::drawFieldLines() const {
     glVertex3f(-goalAreaWidth / 2, -height / 2, 0.01f);
 
     glEnd();
+
+    // Re-enable lighting
+    glEnable(GL_LIGHTING);
 }
 
 void SoccerField::drawGoal(const float yAnchor) const {
+    // Disable lighting for goal posts - they should be bright white
+    glDisable(GL_LIGHTING);
+
     glColor3f(1.0f, 1.0f, 1.0f); // White posts
     glLineWidth(10.0f);
 
@@ -149,4 +159,7 @@ void SoccerField::drawGoal(const float yAnchor) const {
     glVertex3f(-goalWidth / 2, yAnchor, goalHeight);
     glVertex3f(goalWidth / 2, yAnchor, goalHeight);
     glEnd();
+
+    // Re-enable lighting
+    glEnable(GL_LIGHTING);
 }
